@@ -136,6 +136,7 @@ let autoscrollActive = false;
 let autoscrollAcc = 0;
 let autoscrollLast = 0;
 let autoscrollRAF = null;
+let autoscrollTouchStart = null;
 
 function savePrefs() { saveJSON(KEYS.prefs, prefs); }
 function saveFavorites() { saveJSON(KEYS.favorites, favorites); }
@@ -1647,6 +1648,8 @@ function startAutoscroll() {
   autoscrollActive = true;
   autoscrollAcc = 0;
   autoscrollLast = performance.now();
+  // El desplazamiento suave global no debe frenar el autoscroll (móvil)
+  document.documentElement.classList.add("autoscrolling");
 
   const step = (now) => {
     if (!autoscrollActive) return;
@@ -1674,6 +1677,7 @@ function startAutoscroll() {
 
 function stopAutoscroll() {
   autoscrollActive = false;
+  document.documentElement.classList.remove("autoscrolling");
   if (autoscrollRAF) { cancelAnimationFrame(autoscrollRAF); autoscrollRAF = null; }
   updateAutoscrollButtons();
 }
@@ -2112,6 +2116,14 @@ async function logout() {
    19. Router principal
    ------------------------------------------------------------ */
 
+function jumpToTop() {
+  const root = document.documentElement;
+  const previous = root.style.scrollBehavior;
+  root.style.scrollBehavior = "auto";
+  window.scrollTo(0, 0);
+  root.style.scrollBehavior = previous;
+}
+
 function route() {
   const parsed = parseRoute();
   const parts = parsed.parts;
@@ -2195,7 +2207,7 @@ function route() {
     songView = null;
   }
 
-  window.scrollTo({ top: 0, behavior: "auto" });
+  jumpToTop();
 
   const nav = $("#main-nav");
   if (nav) nav.classList.remove("open");
@@ -2343,7 +2355,20 @@ async function init() {
 
   window.addEventListener("hashchange", route);
   window.addEventListener("wheel", () => { if (autoscrollActive) stopAutoscroll(); }, { passive: true });
-  window.addEventListener("touchstart", () => { if (autoscrollActive) stopAutoscroll(); }, { passive: true });
+  window.addEventListener("touchstart", (event) => {
+    const touch = event.touches && event.touches[0];
+    autoscrollTouchStart = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  }, { passive: true });
+  window.addEventListener("touchmove", (event) => {
+    if (!autoscrollActive || !autoscrollTouchStart) return;
+    const touch = event.touches && event.touches[0];
+    if (!touch) return;
+    const dx = touch.clientX - autoscrollTouchStart.x;
+    const dy = touch.clientY - autoscrollTouchStart.y;
+    // Un toque normal (sin arrastre) no detiene el autoscroll; un deslizamiento sí.
+    if (Math.hypot(dx, dy) < 10) return;
+    stopAutoscroll();
+  }, { passive: true });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {

@@ -67,6 +67,7 @@
 [hidden] { display: none !important; }
 
 html { scroll-behavior: smooth; }
+html.autoscrolling { scroll-behavior: auto; }
 
 body {
   margin: 0;
@@ -506,6 +507,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 26px clamp(14px, 3vw, 34px) 34px;
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 .chart {
   margin: 0; font-family: var(--mono); font-size: 20px; line-height: 1.52;
