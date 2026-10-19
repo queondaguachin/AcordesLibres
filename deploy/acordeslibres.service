@@ -1,0 +1,28 @@
+[Unit]
+Description=AcordesLibres (cancionero con cuentas)
+After=network.target
+
+[Service]
+Type=simple
+User=acordes
+Group=acordes
+WorkingDirectory=/opt/acordeslibres
+ExecStart=/usr/bin/node server.js
+EnvironmentFile=/etc/acordeslibres.env
+Restart=on-failure
+RestartSec=3
+
+# Endurecimiento del servicio
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/opt/acordeslibres/data
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+# Caddy — /etc/caddy/Caddyfile
+# Caddy obtiene y renueva el certificado TLS automáticamente.
+
+tudominio.com {
+	encode zstd gzip
+
+	# La app escucha solo en local; Caddy habla HTTPS con el mundo.
+	reverse_proxy 127.0.0.1:8080
+
+	# Caddy añade X-Forwarded-Proto: https, y la app responde con
+	# cookies Secure y HSTS (requiere AL_TRUST_PROXY=1).
+	header {
+		-Server
+	}
+}
+
+# Si quieres redirigir también www:
+# www.tudominio.com {
+# 	redir https://tudominio.com{uri} permanent
+# }

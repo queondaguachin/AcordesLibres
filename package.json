@@ -1,0 +1,12 @@
+{
+  "name": "acordeslibres",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cancionero de letras y acordes con cuentas y recuperación de contraseña por correo",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
